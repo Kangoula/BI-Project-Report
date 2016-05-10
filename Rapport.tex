@@ -1,0 +1,542 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%\usepackage{layout}
+\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{soul}
+\usepackage{ulem}
+\usepackage{newcent}
+\usepackage{lmodern}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{titling}
+\usepackage{fancyhdr}
+\usepackage{nth}
+\usepackage{multicol}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\pagestyle{fancy}
+
+\def\labelitemi{--}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\setlength{\parindent}{0em}
+
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[R]{\textbf{page} \thepage /31}
+\fancyfoot[C]{Université de Lorraine}
+\fancyfoot[L]{Business Intelligence}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[R]{}
+\fancyhead[L]{\leftmark}
+
+\lstset{breaklines=true,
+	tabsize=2,
+	basicstyle=\ttfamily,
+	language=R,
+%	keywordstyle=\color{mymauve}
+}
+
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+\newcommand\image[2]{
+	\begin{figure}[H]
+	\centering
+	\includegraphics[width=#2]{img/#1}
+	\end{figure}
+}
+
+\newcommand{\subtitle}[1]{%
+    \posttitle{%
+        \par\end{center}
+        \begin{center}\large#1\end{center}
+        \vskip0.5em
+        }%
+}
+
+
+\title{Business Intelligence}
+\subtitle{Project}
+\date{May, 10th 2016}
+\author{%
+    Maxime Chaboissier
+	\and
+    Guillaume Denis 
+    \and
+    Romain Papelier
+    \and
+    Mohamed Thiam
+}
+
+\begin{document}
+
+    \clearpage
+	\maketitle
+    \thispagestyle{empty}
+%    \noindent\rule{17cm}{0.4pt}
+    \vspace*{5cm}
+    \image{loupe.png}{100px}
+   \newpage
+
+   \tableofcontents
+
+   \newpage
+  
+    \setstretch{1.25}
+    
+    \section{Introduction}
+    The MIAGE cursus, in Nancy (France) and in Morocco, belongs to the Lorraine’s
+    University. It stored every year since 2002 a lot of data about their students. The data
+    Concerned the grades of each students in each disciplines, classified by year and
+    Promotion.
+    Grades are stored in different spreadsheet files, and this is the heart of our work we
+    Present here.
+    First of all, we have to clean these files, because they are coming from different
+    Miage manager and they have not the same structure. After cleaning these files, we can
+    build our own Data warehouse (DW).
+    The final goal is to analyze this DW in order to find groups of students with similar
+    results, and find similar classes we can group together to homogenize teaching units.
+
+    This report will explain you how we’ve been working and the results of the analysis.
+    \newpage
+
+    \section{Building the cube}
+    \subsection{Defining the dimensions}
+
+    After a look on all of the spreadsheets provided, we defined the dimensions we would use for building the future cube and the facts.
+
+     \subsubsection{The facts table}
+     This table contains the keys to the dimensions (first part) and the measurements, which are
+     numeric fields. First, we had considered only one usefull measurement, which is the grade the student got at an exam, but then we found usefull to add the coefficients in order to calculate the means ourselves in Cognos Transformer.
+
+     \subsubsection{Dimensions}
+
+     This tables permits to have several levels of granularity. It’s a structure usually composed of
+     one or more hierarchies that categorizes data. In this scheme, we have 4 different
+     dimensions :
+    \begin{itemize}
+        \item \textbf{Location} : separate Miage Nancy from Miage Maroc,
+        \item \textbf{Date} : we have to choose the dimensions that represents time. Without time,      DWH has no sens. Here we have 3 different levels : Year > Session > Semester
+        \item \textbf{Student} : represent all the students by their name,
+        \item \textbf{Teaching} : organize all courses by Promotion, Teaching Unit and Discipline (in that order)
+    \end{itemize}
+
+    \subsubsection{Star schema}
+
+    In order to create the hypercube, we have to define what we want in the files, and
+    what we don’t want. To make sure of that, we designed the star schema of our Data
+    Warehouse from the facts and dimensions we defined previously.
+
+    \image{star.png}{250px}
+
+    In the middle, the table “GRADE” is our fact table. It’s surrounded by other tables,
+    named dimensions tables.
+
+    \subsection{Cleaning the data}
+
+   The Data Warehouse (DWH) we need to build has to be defined. As a reminder, a Data warehouse is a database created in order to analyze and do some statistics on a lots of data. It supply from one or more disparate files, which could be spreadsheet files,relational database…
+
+   In our case, all the spreadsheet files are going to feed the DWH. This DWH, unlike a
+   traditional relational database, will contains data redundancy.
+;
+   Thus, we’re going to clean all the files you gave to us, to first create an hypercube. Then, we will be able to navigate in this hypercube, and start some analysis you asked for.
+
+   The first step was to identify all of the disciplines in each degree and merge them by similarity in order to standardize our data. We did that in a common spreadsheet in Google Drive, where we identified a common teaching unit with all of his names, then identified all of the disciplines contained in that unit, with all the different names encountered again. We then extracted a final name for both units and disciplines, so that everyone in the group could work in a standardized manner. 
+
+    \image{matieres.png}{480px}
+
+    Each row relates to a teaching unit. The first column contains all the names of a same teaching unit, with the final choosen name in bold. The second column contains all the names of the disciplines encountered for that unit. In the third column we extracted the different disciplines with final names.
+
+    Now we established a standard for our disciplines and teaching units, we spread the work among the members of the group. The final Excel file had to look like this :
+
+    \image{final.png}{480px}
+
+    The final file contains the grade and coefficients for each student, in each discipline, in each teaching unit, year, degree, session, semester and country. We replaced “DEF” grades by a “-1” value, not reasonable absences by 0, and deleted rows with reasonable absence in order not to penalize the student. 
+
+    \newpage
+
+    \subsection{Importing the data in Transformer}
+
+    Once the final Excel file was done, we imported it into Transformer and defined the dimensions and measurements.
+
+    \image{transformer1.png}{300px}
+
+    We defined the “Resultat” (grade) measurement based on the “Resultat” column in data source. We defined his summary as a mean balanced by “CoefMatiere”.
+    We also added a calculated measurement, simply based on “Resultat”, but with a summary balanced by “CoefUE” this time, in order to show the exact global mean in cube summary where the level of the Teaching dimension is over the “UE” (teaching unit).
+
+    The generated cube contains roughly 780 students.
+    
+    \newpage
+    \section{Usage of the cube}
+    
+    \subsection{Evolution of degrees over the years}
+
+    \image{image10.png}{400px}
+
+    Here are the means of each degree over the years from the MIAGE students in Nancy and in Morocco.
+    It’s hard to draw conclusions because of the lack of information from a year to another. Indeed, we have a lot of breaks in our curves.
+\begin{itemize}
+    \item Global mean of students from "L2" (2$^{nd}$ year of the bachelor's degree) : \textbf 11
+    \item Global mean of students from “L3” (bachelor's degree) : \textbf 10
+    \item Global mean of students from “1$^{st}$ year of the master's degree” (1$^{st}$ year of the master's degree): \textbf 11.05
+    \item Global mean of students from “master's degree” (master's degree) : \textbf 8.95
+    \item Global mean of students from all degrees : \textbf 10.43
+\end{itemize}
+    Nonetheless, we tried to find the trends for each degree over the years :
+
+    \image{image19.png}{400px}
+    
+    We can see on this chart that the means of students from L2, L3 and M1 are globally decreasing since 2003. The M2 ACSI master degree is the only degree that is slightly increasing.
+
+    \subsection{Comparison between France and Morocco}
+
+    \image{image23.png}{400px}
+
+    Results from each degree, form all the years, in France and Morocco. According to our data, French students seems to be a bit better than Morrocan students, although we expected the opposite.
+    This might be caused by the fact that we clean a lot of rows with empty cell results that would have given null values for the French students, especially with optionnal fields (like German, Spanish, etc). For exemple, if a student learn Spanish, but we leave the row about German with en empty result, Talend will turn this empty result into a zero, but it’s never the case in Morocco because Moroccan students have only one field for German/Spanish, called “LV2”, which is never turned into a zero.
+    
+    \subsubsection{Bachelor's degree}
+
+   \image{image21.png}{\textwidth}
+
+   Here is the comparison of results from bachelor degree (L3) students between France and Morocco over all the years. We can see that French students have better results than Moroccan in all of the fields, except in mathematics, where Moroccan students are better.
+
+   \subsubsection{1$^{st}$ year of the master's degree}
+
+   \image{image20.png}{\textwidth}
+
+   Here is the comparison of results from 1$^{st}$ year of the master's degree students between France and Morocco over all the years. We can see that results are almost the same in France and Morocco, except in IT where French students are better, and une management where Moroccan are better.
+\\\\
+It would be interesting to compare this difference on these two fields with results from students in master's degree ACSI and SID in France and Morocco, in order to see if Moroccan students are better students in ACSI than French ones, and if French students are better students in SID than Moroccan ones.
+    
+    \newpage
+    \subsection{Which teaching unit the students are better at ?}
+
+    Because teaching units change throughout the degrees, we choose to answer that question for each degree separately.
+    
+     \subsubsection{2$^{nd}$ year of the bachelor's degree}
+    \image{image06.png}{400px}
+
+    According to this chart, the students from L2 seems to have better results in teaching units related to management, economics, foreign languages and communication. However, they have weaknesses in units mathematics and IT.
+
+    \subsubsection{Bachelor's degree}
+    \image{image03.png}{400px}
+
+    The trend seems to stay the same in bachelor degree (L3) and in the 2$^{nd}$ year : students have better results in analysis, management, laws, foreign languages, communication and internship, and they have lower results in IT and mathematics.
+
+    \subsubsection{ 1$^{st}$ year of the  master's degree}
+
+    \image{image08.png}{370px}
+
+    Once again, students in 1$^{st}$ year of the master's degree seems to be better in units related to management, foreign languages and communication, and in internship (before the establishement of the “LMD” in 2005). Students still show weaknesses in mathematics and IT.
+
+    \subsubsection{ Master's degree}
+
+    \image{image14.png}{370px}
+
+    Students from master's degree ACSI are better in fields relate to foreign languages, communication, management and information system conception. However, they are quite bad in units related to mathematics, business intelligence, and finance.
+
+    \newpage
+
+    \subsection{Evolution of the main teaching units}
+
+    \image{image01.png}{\textwidth}
+
+    Here is the evolution of 4 recurring and important teaching fields in all of the degrees in MIAGE : mathematics, IT, management, and communication. 
+    The trends show that despite of the fact that students are better in management and communication over the years, their results are decreasing in all of the fields.
+\\\\    However, this chart has to be studied very carefully, because results in the Master's degree ACSI come all from Morocco, and we saw previously that the level in Morocco is lower than in France for the 2$^{nd}$ year of the bachelor's degree and the Bachelor's degree. So the trend from this chart might be affected by this.
+
+    \newpage
+
+    \section{Clustering}
+
+    \subsection{2$^{nd}$ year of the bachelor's degree}
+
+    \subsubsection{Semester 1}
+
+    \textbf{\large{Session 1}}
+
+    \image{image07.png}{300px}
+
+    For these results we choose $k=4$.
+    \newpage
+    We get the following clustering :
+    \image{image18.png}{\textwidth}
+
+    \begin{itemize}
+        \item In \textbf{black} we can see the students that are quite good in all fields.
+        \item In \textbf{\textcolor{red}{red}} we have the students that are very good in all fields.
+        \item In \textbf{\textcolor{green}{green}} we have the students that are bad in management, mathematics and IT.
+        \item In \textbf{\textcolor{blue}{blue}} are the students that are bad in languages and management.
+    \end{itemize}
+
+    \newpage
+
+    \subsubsection{Semester 2}
+
+    \textbf{\large{Session 1}}
+
+    \image{image15.png}{250px}
+    So here we can choose between $k=3$ or $k=5$ , and $k=3$ is not bad because we can exactly see the different groups.
+   
+    \image{image16.png}{350px}
+        
+     \begin{itemize}
+        \item In \textbf{\textcolor{red}{red}} we have the students that are medium grades in all fields.
+        \item In \textbf{black} are the students with good grades in every fields.
+        \item In \textbf{\textcolor{green}{green}} we have the students that are bad grades in every fields.
+    \end{itemize}
+    
+    \newpage
+
+    \subsection{Bachelor's degree}
+
+    \subsubsection{Semester 1 } 
+    \textbf{\large{Session 1}}
+
+    \image{image22.png}{380px}
+
+    In this case, we choose to take $k=4$ because with $k=5$ or more, some groups are difficult to distinguish.
+
+    \image{image00.png}{500px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{\textcolor{red}{red}} : the students that get the lowest results grades in all fields.
+            \item In \textbf{\textcolor{green}{green}} : the students that get the best results in almost all fields.\\
+            \item In \textbf{black} : the students that get the lowest grades in Communication and good grades in “Système et réseaux”.
+            \item In \textbf{\textcolor{blue}{blue}} : the students that get medium results in all fields.
+        \end{itemize}
+    \end{multicols}
+
+
+    \textbf{\large{Session 2}}
+
+    \image{image24.png}{380px} 
+
+    The most accurate k to choose here, is $k=4$.
+    
+    \image{image25.png}{500px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{\textcolor{red}{red}} : the students that get the lowest results grades in all fields.
+            \item In \textbf{\textcolor{green}{green}} : the students that get the best results in almost all fields.\\
+            \item In \textbf{black} : the students that get the lowest grades in Communication and good grades in “Système et réseaux”.
+            \item In \textbf{\textcolor{blue}{blue}} : the students that get medium results in all fields.
+        \end{itemize}
+    \end{multicols}
+
+    \subsubsection{Semester 2}
+
+    \textbf{\large{Session 1}}
+
+    \image{image26.png}{380px}
+
+    We choose to take $k=5$, because we can clearly see the groups in the cluster :
+
+    \image{image27.png}{480px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{black} : students with the lowest grades in communication.
+            \item In \textbf{\textcolor{blue}{blue}} : students with the lowest results.  
+            \item In \textbf{\textcolor{cyan}{cyan}} : the students with good results in communication and IT. 
+            \item In \textbf{\textcolor{red}{red}} : students with good results everywhere.
+            \item In \textbf{\textcolor{green}{green}} : the students with good results everywhere except internship.\\\\
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+    These odd results can be explained with the internship that was not in the curriculum every years.
+
+    So we choose to make a second analysis without the internship and $k=4$.\\
+    We get the following cluster :
+
+    \image{image28.png}{500px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{\textcolor{red}{red}} : the students with good results in “Communication” but low results elsewhere.
+            \item In \textbf{\textcolor{green}{green}} : the students with the highest grades.
+            \item In \textbf{black} : the students with the lowest results.
+            \item In \textbf{\textcolor{blue}{blue}} : the students with good grades in “Informatique” and “Communication”.
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+
+    \textbf{\large{Session 2}}
+
+    \image{image29.png}{380px}
+
+    Here we can take $k=5$.
+
+    \image{image30.png}{480px}
+    
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{black} : the students who got a grade in internship. 
+            \item In \textbf{\textcolor{blue}{blue}} : the students that got the highest grades. 
+            \item In \textbf{\textcolor{cyan}{cyan}} : the students who got low results in IT and medium results elsewhere.
+            \item In \textbf{\textcolor{red}{red}} : the students who got medium grades. 
+            \item In \textbf{\textcolor{green}{green}} : the students who did not pass the 2nd session (they got 0 in every courses).\\\\
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+
+    Like the 1st semester, the issue is the internship that was not on the curriculum every year. If we take off the internship variable and reduce k to 4, we get this cluster :
+    \image{image31.png}{480px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{\textcolor{red}{red}} : the students that got 0,in every courses, we can assume that they didn’t come to the exam.
+            \item In \textbf{black} : the students with low results in IT  and medium results elsewhere. 
+            \item In \textbf{\textcolor{blue}{blue}} :  the students that get medium grades. 
+            \item In \textbf{\textcolor{green}{green}} : the students with the highest results.\\
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+
+    \subsection{1$^{st}$ year of the master's degree}
+
+    \subsubsection{Semester 1}
+
+    \textbf{\large{Session 1}}
+
+    \image{image11.png}{200px}
+
+    Here is the within sum of squares depending of k (number of groups). We could choose k = 3, but in that case, the groups are hard to distinguish on their means in the different teaching units. So we choose k = 5. We get the same within sum of squares, but the groups are easier to characterize on their means, especially on the means in mathematics and IT, which are the most influent variables.
+
+    \image{image12.png}{480px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{black} (group 1) : students that are bad in IT, but good in other fields. 
+            \item In \textbf{\textcolor{red}{red}} (group 2): students that are bad in mathematics, average in systems and conception, and good in other fields.
+            \item In \textbf{\textcolor{green}{green}} (group 3): students that are good in all fields.
+            \item In \textbf{\textcolor{blue}{blue}} (group 4): students that are bad in mathematics and IT, but good in other fields.
+            \item In \textbf{\textcolor{cyan}{cyan}} (group 5): students that are bad in most of the fields.\\\\\\ 
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+
+    \image{image09.png}{380px}
+    
+    Proportion of students in each group.
+    We can conclude that in M1, 1st semester, 1st session, 35\% of the students are good in all of the fields, 25\% are bad in mathematics, in the middle in systems and conception, and good in the other fields, 20\% are bad in maths and IT, and good in the other fields, 16\% are bad in IT and good in the other fields, and 4\% are bad in almost all of the fields.
+
+    It should be underlined that mathematics is the field where we see the most numerous bad results compared to other fields.
+
+    \newpage
+
+    \textbf{\large{Session 2}}
+
+    \image{image13.png}{480px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item Group 1 (\textbf{black}) : very bad everywhere (3.5\% of total).
+            \item Group 2 (\textbf{\textcolor{red}{red}}) : very bad in one or more units, but quite good in the others (1.7\% of total).
+            \item Group 3 (\textbf{\textcolor{green}{green}}) : average in IT and conception, average to bad in mathematics, but good in others (32.5\%)
+            \item Group 4 (\textbf{\textcolor{blue}{blue}}) : bad in IT, average in mathematics, but good in others (28\%)
+            \item Group 5 (\textbf{\textcolor{cyan}{cyan}}) : the best : average in IT, good in all others (15\%).
+            \item Group 6 (\textbf{\textcolor{violet}{violet}}) : bad in IT, good in others (19.3\%)\\
+        \end{itemize}
+    \end{multicols}
+    
+    \newpage
+    Because of the format of data used here, it is possible that students in groups 1 and 2 are just students that didn’t need to pass again exams in some units, or had reasonable absence.
+
+    \subsubsection{Semester 2}
+
+    \textbf{\large{Session 1}}
+
+    \image{image05.png}{480px}
+    
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item group 1 (\textbf{black}) : students are bad in almost every field (2.5\%)
+            \item group 2 (\textbf{\textcolor{red}{red}}) : students are good everywhere (40.5\%)\\
+            \item group 3 (\textbf{\textcolor{green}{green}}) : students are average in IT and maths, but good in others (41.5\%).
+            \item group 4 (\textbf{\textcolor{blue}{blue}}) : students are bad in IT and maths, but average to good in others (15.5\%).
+        \end{itemize}
+    \end{multicols}
+
+    \newpage
+    
+    \textbf{\large{Session 2}}
+    
+    \image{image17.png}{480px}
+
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item group 1 (\textbf{black}) : students are very bad in almost every field (5.3\%)
+            \item group 2 (\textbf{\textcolor{red}{red}}) : students are globally average everywhere, but good in communication (61.5\%)
+            \item group 3 (\textbf{\textcolor{green}{green}}) : students are very bad in maths and in communication, but average to good in others (1.7\%)
+            \item group 4 (\textbf{\textcolor{blue}{blue}}) : students are good to very good in every field (31.5\%).
+         \end{itemize}
+    \end{multicols}
+    
+    \newpage
+    
+    \subsection{Master's degree}
+    
+    \subsubsection{Year 2006 - Session 1}
+    
+    \image{M2-2006.png}{480px}
+    
+    Here we can see two groups :
+    \begin{itemize}
+        \item In \textbf{black} : students who are average to good almost everywhere (60\%)
+        \item In \textbf{\textcolor{red}{red}} : students who are almost bad everywhere (40\%)
+    \end{itemize}
+    In this case, almost all of the units have a big influence on the kmeans.
+    
+    \newpage
+    
+    \subsubsection{Year 2008 to 2015 - Session 1}
+    
+    \image{M2-2008.png}{480px}
+    
+    \begin{multicols}{2}
+        \begin{itemize}
+            \item In \textbf{black} (group 1) : very bad students (9\%).
+            \item In \textbf{\textcolor{red}{red}} (group 2): average students (21.5\%).
+            \item In \textbf{\textcolor{green}{green}} (group 3): students who are bad in Information Systems Design and average elsewhere (16.5\%).
+            \item In \textbf{\textcolor{blue}{blue}} (group 4): students who are quite bad in audit and BI, and average elsewhere (28\%).
+            \item In \textbf{\textcolor{cyan}{cyan}} (group 5): best students : average to good in every unit (25\%).\\ 
+        \end{itemize}
+    \end{multicols}
+    
+    \newpage
+    
+    \section{Conclusion}
+    
+    Every year we are able to distinguish the same groups of students : those who get very good results, those who get good results in technical courses, those who are in the average, and those who get low results. That's why we can conclude that the global repartition in every year is independent from the year. We always get quite the same type of students.
+    
+    Putting this in perspective, with this project we were able to have a global view of the Business Intelligence profession. The hardest and the most time taking task was of course the data's cleaning. We did not know how to use efficiently Talend in a context where the data are not clean enough to perform a safe transformation of the data. To calculate the kmeans, once again we ran into our lack of knowledge about the format to use. The Excels we had were not usable as they were with R. We hab to transform them to make use efficiently R. 
+
+\end{document}
